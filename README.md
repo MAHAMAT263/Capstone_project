@@ -1,9 +1,9 @@
 # Capstone_project
 # ChFarmGuard: IoT and Computer Vision for Livestock Intrusion Alert
 
-## demo_link:
-## Figma_design:
-## Repo_link:
+# demo_link:
+# Figma_design:
+# Repo_link:
 
 **Author:** Mahamat Hissein Ahmat
 **Supervisor:** Bernard Odartei Lamptey
