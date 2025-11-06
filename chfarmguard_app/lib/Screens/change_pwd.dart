@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -8,13 +9,79 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  // State variables for password visibility (common for security screens)
+  final _auth = FirebaseAuth.instance;
+
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _isCurrentPasswordVisible = false;
   bool _isNewPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
 
-  // The hint text for the validation error
-  final String validationHint = 'Both Passwords Must Match';
+  Future<void> _changePassword() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final currentPassword = _currentPasswordController.text.trim();
+    final newPassword = _newPasswordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (currentPassword.isEmpty ||
+        newPassword.isEmpty ||
+        confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields.')),
+      );
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('New passwords do not match.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Re-authenticate user before changing password
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      // Update password
+      await user.updatePassword(newPassword);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password updated successfully!')),
+      );
+
+      // Clear fields
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    } on FirebaseAuthException catch (e) {
+      String message = '';
+      if (e.code == 'wrong-password') {
+        message = 'Current password is incorrect.';
+      } else if (e.code == 'weak-password') {
+        message = 'New password is too weak.';
+      } else {
+        message = e.message ?? 'An error occurred.';
+      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +89,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0, // No shadow
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            // Implement back navigation functionality here
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Change Password',
@@ -40,83 +104,59 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+          children: [
             const SizedBox(height: 48),
-
-            // --- Current Password Field ---
             _buildPasswordField(
+              controller: _currentPasswordController,
               labelText: 'Current Password',
               isObscure: !_isCurrentPasswordVisible,
               toggleVisibility: () {
-                setState(() {
-                  _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
-                });
+                setState(() =>
+                    _isCurrentPasswordVisible = !_isCurrentPasswordVisible);
               },
             ),
             const SizedBox(height: 24),
-
-            // --- New Password Field ---
             _buildPasswordField(
+              controller: _newPasswordController,
               labelText: 'New Password',
               isObscure: !_isNewPasswordVisible,
               toggleVisibility: () {
-                setState(() {
-                  _isNewPasswordVisible = !_isNewPasswordVisible;
-                });
+                setState(() => _isNewPasswordVisible = !_isNewPasswordVisible);
               },
             ),
             const SizedBox(height: 24),
-
-            // --- Confirm New Password Field ---
             _buildPasswordField(
-              labelText: 'Cofirm New Password',
+              controller: _confirmPasswordController,
+              labelText: 'Confirm New Password',
               isObscure: !_isConfirmPasswordVisible,
               toggleVisibility: () {
-                setState(() {
-                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                });
+                setState(() =>
+                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible);
               },
-              // The hint for 'Both Passwords Must Match' is placed after the input
-              // as suggested by the image layout.
-              trailingWidget: Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  validationHint,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600], // Use a subtle color for the hint
-                  ),
-                ),
-              ),
             ),
             const SizedBox(height: 60),
-
-            // --- Change Password Button ---
             SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {
-                  // Implement the password change logic here
-                  print('Change Password button pressed!');
-                },
+                onPressed: _isLoading ? null : _changePassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700], // Primary blue color
+                  backgroundColor: Colors.blue[700],
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // Rounded corners
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                child: const Text(
-                  'Change Password',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Change Password',
+                        style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600),
+                      ),
               ),
             ),
-
             const SizedBox(height: 40),
           ],
         ),
@@ -124,66 +164,40 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  // Helper widget to build the custom Password TextFields
   Widget _buildPasswordField({
+    required TextEditingController controller,
     required String labelText,
     required bool isObscure,
     required VoidCallback toggleVisibility,
-    Widget? trailingWidget,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // The Label Text (Faint Grey)
-        Text(
-          labelText,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
-        ),
+        Text(labelText,
+            style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         TextFormField(
-          obscureText: isObscure, // Hides/shows the input
-          keyboardType: TextInputType.visiblePassword,
+          controller: controller,
+          obscureText: isObscure,
           style: const TextStyle(
-            color: Colors.black, // Input text color
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 2.0, // Spacing for the dots
-          ),
+              color: Colors.black, fontSize: 16, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             isDense: true,
-            // Prefix Icon (Lock)
-            prefixIcon: Icon(
-              Icons.lock_outline,
-              color: Colors.grey[700],
-            ),
-            // Suffix Icon (Eye for visibility)
+            prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[700]),
             suffixIcon: IconButton(
               icon: Icon(
-                isObscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.grey[700],
-              ),
+                  isObscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: Colors.grey[700]),
               onPressed: toggleVisibility,
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 12.0),
-            // Underline border styling
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.grey[300]!,
-                width: 1.0,
-              ),
-            ),
+                borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0)),
             focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Colors.blue, // Active focus color
-                width: 2.0,
-              ),
-            ),
+                borderSide: BorderSide(color: Colors.blue, width: 2.0)),
           ),
         ),
-        // The optional trailing widget (e.g., "Both Passwords Must Match")
-        if (trailingWidget != null) trailingWidget,
       ],
     );
   }

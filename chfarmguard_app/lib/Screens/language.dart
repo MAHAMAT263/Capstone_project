@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:translator/translator.dart';
 
 // Model to represent a language option
 class LanguageOption {
   final String code;
   final String name;
-  final String flagAsset; // Placeholder for asset path or network URL
+  final String flagAsset;
 
   LanguageOption({
     required this.code,
@@ -21,16 +23,72 @@ class LanguageScreen extends StatefulWidget {
 }
 
 class _LanguageScreenState extends State<LanguageScreen> {
-  // Mock data for the languages
+  final translator = GoogleTranslator();
+
   final List<LanguageOption> allLanguages = [
-    LanguageOption(code: 'en', name: 'English', flagAsset: 'assets/us_flag.png'),
-    LanguageOption(code: 'ar', name: 'Arabic', flagAsset: 'assets/saudi_flag.png'),
-    LanguageOption(code: 'fr', name: 'French', flagAsset: 'assets/french_flag.png'),
-    // Add more languages here
+    LanguageOption(
+        code: 'en', name: 'English', flagAsset: 'assets/us_flag.png'),
+    LanguageOption(
+        code: 'ar', name: 'Arabic', flagAsset: 'assets/saudi_flag.png'),
+    LanguageOption(
+        code: 'fr', name: 'French', flagAsset: 'assets/french_flag.png'),
   ];
 
-  // State to track the currently selected language
-  String _selectedLanguageCode = 'en'; // English is selected by default/in the image
+  String _selectedLanguageCode = 'en'; // default
+  List<LanguageOption> _filteredLanguages = [];
+
+  // Example UI texts
+  String titleText = "Select Language";
+  String searchHint = "Search Language";
+
+  @override
+  void initState() {
+    super.initState();
+    _filteredLanguages = allLanguages;
+    _loadSelectedLanguage();
+  }
+
+  // Load selected language from SharedPreferences
+  Future<void> _loadSelectedLanguage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedCode = prefs.getString('selected_language');
+    if (savedCode != null) {
+      setState(() {
+        _selectedLanguageCode = savedCode;
+      });
+      _translateUI(savedCode); // translate texts
+    }
+  }
+
+  // Save selected language to SharedPreferences
+  Future<void> _saveSelectedLanguage(String code) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_language', code);
+  }
+
+  // Filter languages based on search query
+  void _filterLanguages(String query) {
+    final filtered = allLanguages.where((lang) {
+      return lang.name.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      _filteredLanguages = filtered;
+    });
+  }
+
+  // Translate UI texts dynamically
+  Future<void> _translateUI(String targetLang) async {
+    final titleTrans =
+        await translator.translate("Select Language", to: targetLang);
+    final searchTrans =
+        await translator.translate("Search Language", to: targetLang);
+
+    setState(() {
+      titleText = titleTrans.text;
+      searchHint = searchTrans.text;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,50 +96,50 @@ class _LanguageScreenState extends State<LanguageScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0, // No shadow
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            // Implement back navigation functionality here
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Language',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          titleText,
+          style:
+              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
       body: Column(
         children: <Widget>[
-          // --- Search Bar ---
+          // Search bar
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey[100], // Light grey background
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              child: const TextField(
+              child: TextField(
+                onChanged: _filterLanguages,
                 decoration: InputDecoration(
-                  hintText: 'Search Language',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
-                  border: InputBorder.none, // Remove default border
-                  contentPadding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 10.0),
+                  hintText: searchHint,
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14.0, horizontal: 10.0),
                 ),
-                // Add onChanged logic here to filter the list
               ),
             ),
           ),
-          
-          // --- Language List ---
+
+          // Language list
           Expanded(
             child: ListView.builder(
-              itemCount: allLanguages.length,
+              itemCount: _filteredLanguages.length,
               itemBuilder: (context, index) {
-                final language = allLanguages[index];
+                final language = _filteredLanguages[index];
                 return _buildLanguageItem(language);
               },
             ),
@@ -91,54 +149,38 @@ class _LanguageScreenState extends State<LanguageScreen> {
     );
   }
 
-  // Helper widget to build a single language selection item
   Widget _buildLanguageItem(LanguageOption language) {
     final isSelected = language.code == _selectedLanguageCode;
-    
+
     return InkWell(
-      onTap: () {
+      onTap: () async {
         setState(() {
           _selectedLanguageCode = language.code;
         });
-        // Logic to actually change the app's language would go here
+        await _saveSelectedLanguage(language.code);
+        await _translateUI(language.code); // translate UI immediately
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(
-              color: Colors.grey[200]!,
-              width: 1.0,
-            ),
+            bottom: BorderSide(color: Colors.grey[200]!, width: 1.0),
           ),
         ),
         child: Row(
           children: <Widget>[
-            // --- Flag Image Placeholder ---
-            // NOTE: In a real application, you must use Image.asset() 
-            // with your flag images stored in the 'assets' folder
+            // Flag image
             Container(
               width: 40,
               height: 40,
               margin: const EdgeInsets.only(right: 16.0),
-              decoration: BoxDecoration(
-                // Placeholder for flag image
-                color: Colors.grey[300],
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey[400]!),
-              ),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
               child: ClipOval(
-                // Replace with actual flag image widget (e.g., Image.asset)
-                child: Text(
-                  // Use a simple text placeholder for demonstration
-                  language.code.toUpperCase(), 
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 12, height: 3.0),
-                ),
+                child: Image.asset(language.flagAsset, fit: BoxFit.cover),
               ),
             ),
 
-            // --- Language Name ---
+            // Language name
             Expanded(
               child: Text(
                 language.name,
@@ -150,11 +192,11 @@ class _LanguageScreenState extends State<LanguageScreen> {
               ),
             ),
 
-            // --- Checkmark Icon ---
+            // Checkmark if selected
             if (isSelected)
               const Icon(
                 Icons.check_circle,
-                color: Colors.blue, // Primary checkmark color
+                color: Colors.blue,
                 size: 24,
               ),
           ],
@@ -163,9 +205,3 @@ class _LanguageScreenState extends State<LanguageScreen> {
     );
   }
 }
-
-// NOTE on Flags: 
-// To display the actual flags, you need to add your flag images (e.g., 'us_flag.png', 'saudi_flag.png') 
-// to your Flutter project's 'assets' folder and update the pubspec.yaml file.
-// Then, replace the placeholder Container/Text with: 
-// Image.asset(language.flagAsset, fit: BoxFit.cover)

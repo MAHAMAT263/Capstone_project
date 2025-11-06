@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'home.dart'; // Import your HomeScreen
+import 'package:firebase_auth/firebase_auth.dart';
+import 'home.dart';
 import 'term_condition.dart';
 import 'change_pwd.dart';
-import 'profile.dart'; // Import your ProfileScreen
+import 'profile.dart';
 import 'language.dart';
+import 'sign_in.dart'; // ✅ Import your login screen
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +16,28 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool isAutomaticEnabled = true;
+
+  Future<void> _logoutUser() async {
+    try {
+      await FirebaseAuth.instance.signOut(); // ✅ Firebase logout
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You’ve been logged out successfully.')),
+        );
+
+        // ✅ Redirect to login screen after logout
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Logout failed: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,33 +73,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: 'Language',
                 trailingText: 'English',
                 onTap: () {
-                  // Navigate to a Language screen if you have one
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const LanguageScreen(),
                     ),
                   );
-                  print('Language tapped');
                 },
               ),
               _buildSettingsItem(
                 title: 'My Profile',
                 onTap: () {
-                  // Navigate to Profile screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const EditProfileScreen(),
                     ),
                   );
-                  print('My Profile tapped');
                 },
               ),
               _buildSettingsItem(
                 title: 'Contact Us',
                 onTap: () {
-                  // Navigate to Contact screen
                   print('Contact Us tapped');
                 },
                 showDivider: false,
@@ -84,20 +103,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildSettingsItem(
                 title: 'Change Password',
                 onTap: () {
-                  // Navigate to Change Password screen
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const ChangePasswordScreen(),
                     ),
                   );
-                  print('Change Password tapped');
                 },
               ),
               _buildSettingsItem(
                 title: 'Term & Condition',
                 onTap: () {
-                  // Navigate to TermsAndConditionScreen
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -146,21 +162,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
+
+              // ✅ Logout button
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 16.0),
                 child: SizedBox(
                   width: double.infinity,
                   child: TextButton(
-                    onPressed: () {
-                      // Navigate to HomeScreen or LoginScreen after logout
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeScreen(),
-                        ),
-                      );
-                    },
+                    onPressed: _logoutUser, // call logout
                     child: const Text(
                       'Logout',
                       style: TextStyle(
@@ -172,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 80), // Extra space for bottom nav
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -282,14 +292,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return GestureDetector(
       onTap: () {
-        // Navigation logic for bottom nav items
         if (label == 'Home') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
-        } else if (label == 'Settings') {
-          // Already on Settings, do nothing or maybe scroll to top
         }
       },
       child: Column(

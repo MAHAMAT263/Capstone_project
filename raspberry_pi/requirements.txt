@@ -1,0 +1,5 @@
+firebase-admin
+tensorflow
+opencv-python
+numpy
+pygame
