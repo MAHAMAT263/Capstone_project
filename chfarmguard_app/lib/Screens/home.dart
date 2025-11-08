@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'settings.dart';
 
-// --- Assets Placeholders ---
-const String warningImageUrl = 'https://picsum.photos/id/106/500/300';
-const String safeImageUrl = 'https://picsum.photos/id/102/500/300';
+// 🖼️ Your Raspberry Pi IP running Flask
+const String raspberryPiIp = '192.168.1.242'; // ⬅️ CHANGE THIS
+String get liveImageUrl => 'http://$raspberryPiIp:5000/latest.jpg';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _imageUrl = liveImageUrl;
 
   /// 🟢 Update alert status when buttons are clicked
   Future<void> _updateAlertStatus(
@@ -35,10 +42,7 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Home',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Home', style: TextStyle(color: Colors.black)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -62,6 +66,12 @@ class HomeScreen extends StatelessWidget {
             final status = alertData['status'] ?? '';
             final isWarning = (status == 'PENDING');
 
+            // 🔁 Only refresh image when there’s a new alert
+            if (isWarning) {
+              _imageUrl =
+                  '$liveImageUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+            }
+
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding:
@@ -81,7 +91,7 @@ class HomeScreen extends StatelessWidget {
                   Center(
                     child: SizedBox(
                       width: double.infinity,
-                      height: 200,
+                      height: 220,
                       child:
                           isWarning ? _buildWarningImage() : _buildSafeImage(),
                     ),
@@ -177,34 +187,31 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// 🔴 Build warning image
+  /// 🐄 Build warning image (from Raspberry Pi)
   Widget _buildWarningImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12.0),
       child: Image.network(
-        warningImageUrl,
+        _imageUrl,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return const Center(child: CircularProgressIndicator());
         },
+        errorBuilder: (context, error, stackTrace) => const Icon(
+          Icons.broken_image,
+          color: Colors.redAccent,
+          size: 100,
+        ),
       ),
     );
   }
 
-  /// 🟢 Build safe image
+  /// 🌾 Build safe image (placeholder)
   Widget _buildSafeImage() {
     return Center(
       child: Image.asset(
         'assets/img/safe_crops.png',
-        color: Colors.black,
         height: 260,
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) => const Icon(
@@ -233,14 +240,7 @@ class HomeScreen extends StatelessWidget {
             icon: Icons.home_outlined,
             label: 'Home',
             isSelected: true,
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Refreshing alert status...'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
+            onTap: () {},
           ),
           _buildNavItem(
             icon: Icons.settings_outlined,
@@ -266,12 +266,11 @@ class HomeScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final color = isSelected ? Colors.blue : Colors.grey[700];
-
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
+        children: [
           Icon(icon, color: color, size: 24),
           Text(
             label,
