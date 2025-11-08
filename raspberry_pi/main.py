@@ -1,8 +1,11 @@
 import cv2
+import sys
 import numpy as np
 import tensorflow as tf
 import time
 import traceback
+import os
+import subprocess
 from alert_manager import (
     init_firebase,
     send_alert_to_firestore,
@@ -14,11 +17,29 @@ from sound_manager import play_sound
 # Configuration
 MODEL_PATH = "models/best_animals.tflite"
 LABELS_PATH = "models/classes.txt"
-THREAT_ANIMALS = ["cattle" , "camel" , "sheep" , "goat" ]
+THREAT_ANIMALS = ["cattle", "camel", "sheep", "goat"]
 MOTION_THRESHOLD = 2500
-DETECTION_INTERVAL = 10  # detect every 10 frames
-FONT = cv2.FONT_HERSHEY_SIMPLEX
+DETECTION_INTERVAL = 20
+FONT = cv2.FONT_HERSHEY_DUPLEX
 INPUT_SIZE = (320, 320)
+CAPTURE_DIR = "captured_image"
+CAPTURE_PATH = os.path.join(CAPTURE_DIR, "latest.jpg")
+
+# Ensure the directory exists
+os.makedirs(CAPTURE_DIR, exist_ok=True)
+
+# Start Flask image server automatically (if not already running)
+def start_image_server():
+    try:
+        server_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "image_server.py")
+        subprocess.Popen(
+            [sys.executable, server_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        print("✅ Image server started at http://<device-ip>:5000/latest.jpg")
+    except Exception as e:
+        print("⚠️ Could not start image server:", e)
 
 # Load labels
 with open(LABELS_PATH, "r") as f:
@@ -41,9 +62,7 @@ detected_animals = {}
 ALERT_COOLDOWN = 30
 ALERT_DOC_ID = "alert_test_001"
 
-
 # ---------- Detection helpers ----------
-
 def detect_animal(frame):
     """Run inference on a frame."""
     img_resized = cv2.resize(frame, INPUT_SIZE)
@@ -55,7 +74,6 @@ def detect_animal(frame):
         return process_single_output(output_data)
     else:
         return process_multiple_outputs(interpreter, output_details)
-
 
 def process_single_output(output_data):
     output = np.transpose(output_data[0])
@@ -70,7 +88,6 @@ def process_single_output(output_data):
             best_class = LABELS[best_idx] if best_idx < len(LABELS) else f"class_{best_idx}"
     return best_class, best_conf
 
-
 def process_multiple_outputs(interpreter, output_details):
     outputs = [interpreter.get_tensor(o['index'])[0] for o in output_details]
     best_class, best_conf = "unknown", 0.0
@@ -84,7 +101,6 @@ def process_multiple_outputs(interpreter, output_details):
                 break
     return best_class, best_conf
 
-
 def should_detect_animal(animal, confidence):
     """Avoid duplicates within cooldown period."""
     now = time.time()
@@ -95,13 +111,14 @@ def should_detect_animal(animal, confidence):
     detected_animals[animal] = now
     return True
 
-
 # ---------- Main logic ----------
-
 def main():
-    print(" Starting Real-Time Animal Detection with Live View...")
-    print(" Only showing detections above 80% confidence")
-    print(f" Using fixed alert document ID: {ALERT_DOC_ID}")
+    print("Starting Real-Time Animal Detection with Live View...")
+    print("Only showing detections above 80% confidence")
+    print(f"Using fixed alert document ID: {ALERT_DOC_ID}")
+
+    # Start the image server (only once)
+    start_image_server()
 
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -115,7 +132,7 @@ def main():
         try:
             ret, frame = cap.read()
             if not ret:
-                print(" Camera read error.")
+                print("Camera read error.")
                 break
 
             fg_mask = back_sub.apply(frame)
@@ -129,22 +146,27 @@ def main():
                 if frame_count % DETECTION_INTERVAL == 0:
                     animal, confidence = detect_animal(frame)
                     if should_detect_animal(animal, confidence):
-                        
                         if animal.lower() in THREAT_ANIMALS and confidence > 0.6:
                             now = time.time()
                             if now - last_alert_time > 15:
-                                print(" Threat detected! Sending alert...")
+                                print(f"⚠️ Threat detected: {animal} ({confidence:.2f})")
+
+                                # --- Save the detected frame ---
+                                cv2.imwrite(CAPTURE_PATH, frame)
+                                print(f"📸 Image saved to {CAPTURE_PATH}")
+
+                                # Send alert to Firebase
                                 conf_val = float(confidence)
                                 online = send_alert_to_firestore(db, animal, conf_val, ALERT_DOC_ID)
 
                                 if online:
-                                    print(" Alert created → waiting up to 5 min for response...")
+                                    print("Alert created → waiting for response...")
                                     wait_start = time.time()
                                     responded = False
-                                    while time.time() - wait_start < 300:  # 5 minutes
+                                    while time.time() - wait_start < 300:
                                         resp = check_alert_response(db, ALERT_DOC_ID)
                                         if resp == "PLAY":
-                                            print(" Farmer chose PLAY.")
+                                            print("Farmer chose PLAY.")
                                             play_sound("warning")
                                             update_alert_status(db, ALERT_DOC_ID, "PROCESSED")
                                             responded = True
@@ -155,41 +177,35 @@ def main():
                                             responded = True
                                             break
                                         time.sleep(5)
-
-                                    # No response after 5 min
                                     if not responded:
-                                        print(" No response in 5 min → self-processing.")
+                                        print("No response in 5 min → auto-processing.")
                                         update_alert_status(db, ALERT_DOC_ID, "PROCESSED")
                                         play_sound("warning")
                                 else:
-                                    print(" Firebase offline → play sound locally.")
+                                    print("Firebase offline → play sound locally.")
                                     play_sound("warning")
 
                                 last_alert_time = now
                             else:
-                                print(" Duplicate alert skipped.")
+                                print("Duplicate alert skipped.")
 
             else:
                 frame_count = 0
                 cv2.putText(frame_disp, "No Motion", (20, 40), FONT, 1, (150, 150, 150), 2)
 
             # show frame
-            blended = cv2.addWeighted(frame_disp, 0.8,
-                                      cv2.applyColorMap(fg_mask, cv2.COLORMAP_JET), 0.4, 0)
-            cv2.imshow(" ChFarmGuard Detection", blended)
-
+            cv2.imshow("ChFarmGuard Detection", frame_disp)
             if cv2.waitKey(1) & 0xFF == ord("q"):
-                print(" Exiting system...")
+                print("Exiting system...")
                 break
 
         except Exception as e:
-            print(" Error in main loop:", e)
+            print("Error in main loop:", e)
             traceback.print_exc()
             time.sleep(2)
 
     cap.release()
     cv2.destroyAllWindows()
-
 
 if __name__ == "__main__":
     main()
