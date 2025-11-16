@@ -76,10 +76,15 @@ Functionality Demonstrations:
 # 🟨 System Architecture
 
 raspberry_pi/
+
 │
+
 ├── main.py                  # Full detection + GSM + Firebase logic
+
 ├── image_server.py          # Flask local image server
+
 ├── api/                     # FastAPI cloud uploader
+
 ├── models/
 │   ├── best_animals.tflite
 │   └── classes.txt
