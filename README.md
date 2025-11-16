@@ -76,13 +76,13 @@ Functionality Demonstrations:
 # 🟨 System Architecture
 
 raspberry_pi/
-|
-├── main.py                 (Full detection + GSM + Firebase logic)
-├── image_server.py         (Flask local image server)
-├── api/                    (FastAPI cloud uploader)
+│
+├── main.py # Full detection + GSM + Firebase logic
+├── image_server.py # Flask local image server
+├── api/ # FastAPI cloud uploader
 ├── models/
-│   ├── best_animals.tflite
-│   └── classes.txt
+│ ├── best_animals.tflite
+│ └── classes.txt
 ├── alert_manager.py
 ├── sound_manager.py
 ├── sounds/
