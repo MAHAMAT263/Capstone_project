@@ -1,5 +1,5 @@
-ChFarmGuard: IoT + Computer Vision Livestock Intrusion Alert System
-Final Capstone Project – BSc Software Engineering
+# ChFarmGuard: IoT + Computer Vision Livestock Intrusion Alert System
+## Final Capstone Project – BSc Software Engineering
 
 Author: Mahamat Hissein Ahmat
 Supervisor: Bernard Odartei Lamptey
@@ -8,7 +8,7 @@ Date: 15/09/2025
 📹 Demo Video
 
 ▶ 5-minute demonstration video
-https://drive.google.com/file/d/1L4ZV4tlrEsNnrDCLymxNgJvWMGlOIHXN/view?usp=sharing
+https://drive.google.com/drive/folders/17Xac1BwoIPViNwazjs06NWbVoVIGqKkc?usp=drive_link
 
 📁 GitHub Repository
 
