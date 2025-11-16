@@ -77,12 +77,12 @@ Functionality Demonstrations:
 
 raspberry_pi/
 │
-├── main.py # Full detection + GSM + Firebase logic
-├── image_server.py # Flask local image server
-├── api/ # FastAPI cloud uploader
+├── main.py                  # Full detection + GSM + Firebase logic
+├── image_server.py          # Flask local image server
+├── api/                     # FastAPI cloud uploader
 ├── models/
-│ ├── best_animals.tflite
-│ └── classes.txt
+│   ├── best_animals.tflite
+│   └── classes.txt
 ├── alert_manager.py
 ├── sound_manager.py
 ├── sounds/
@@ -90,9 +90,10 @@ raspberry_pi/
 ├── firebase_config.json
 └── requirements.txt
 
-chfarmguard_app/            (Flutter mobile app)
-app-release.apk             (Android APK)
-notebook.ipynb              (Training notebook)
+chfarmguard_app/             # Flutter mobile app
+app-release.apk              # Android APK
+notebook.ipynb               # Training notebook
+
 
 ---
 
