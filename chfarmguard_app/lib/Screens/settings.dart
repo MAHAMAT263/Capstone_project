@@ -5,7 +5,9 @@ import 'term_condition.dart';
 import 'change_pwd.dart';
 import 'profile.dart';
 import 'language.dart';
-import 'sign_in.dart'; // ✅ Import your login screen
+import 'sign_in.dart';
+import 'contact.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -15,17 +17,29 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool isAutomaticEnabled = true;
+  bool isAutomaticEnabled = false; // default OFF
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSwitchValue(); // 🔥 Load saved switch value on app start
+  }
+
+  Future<void> _loadSwitchValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isAutomaticEnabled = prefs.getBool('automatic_mode') ?? false;
+    });
+  }
 
   Future<void> _logoutUser() async {
     try {
-      await FirebaseAuth.instance.signOut(); // ✅ Firebase logout
+      await FirebaseAuth.instance.signOut();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('You’ve been logged out successfully.')),
         );
 
-        // ✅ Redirect to login screen after logout
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const SignInScreen()),
@@ -76,8 +90,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const LanguageScreen(),
-                    ),
+                        builder: (context) => const LanguageScreen()),
                   );
                 },
               ),
@@ -87,15 +100,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EditProfileScreen(),
-                    ),
+                        builder: (context) => const EditProfileScreen()),
                   );
                 },
               ),
               _buildSettingsItem(
                 title: 'Contact Us',
                 onTap: () {
-                  print('Contact Us tapped');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ContactScreen()),
+                  );
                 },
                 showDivider: false,
               ),
@@ -106,8 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ChangePasswordScreen(),
-                    ),
+                        builder: (context) => const ChangePasswordScreen()),
                   );
                 },
               ),
@@ -117,12 +132,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const TermsAndConditionScreen(),
-                    ),
+                        builder: (context) => const TermsAndConditionScreen()),
                   );
                 },
                 showDivider: false,
               ),
+
+              // ---------- AUTOMATIC MODE SWITCH ----------
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 24.0),
@@ -150,10 +166,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         Switch(
                           value: isAutomaticEnabled,
-                          onChanged: (bool newValue) {
+                          onChanged: (bool newValue) async {
                             setState(() {
                               isAutomaticEnabled = newValue;
                             });
+
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool('automatic_mode', newValue);
                           },
                           activeColor: Colors.blue,
                         ),
@@ -163,14 +182,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
 
-              // ✅ Logout button
+              // ---------- LOGOUT ----------
               Padding(
                 padding: const EdgeInsets.symmetric(
                     horizontal: 16.0, vertical: 16.0),
                 child: SizedBox(
                   width: double.infinity,
                   child: TextButton(
-                    onPressed: _logoutUser, // call logout
+                    onPressed: _logoutUser,
                     child: const Text(
                       'Logout',
                       style: TextStyle(
@@ -190,6 +209,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       bottomNavigationBar: _buildBottomNavBar(),
     );
   }
+
+  // ------------ UI HELPERS BELOW ------------
 
   Widget _buildSettingsGroupTitle(String title, {double topPadding = 32.0}) {
     return Padding(

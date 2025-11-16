@@ -90,4 +90,3 @@ def update_alert_status(db, alert_doc_id, new_status):
         print(f" Firestore alert updated → {new_status}")
     except Exception as e:
         print(f" Could not update Firestore alert: {e}")
-        print(f" HIGH CONFIDENCE DETECTION: {animal} ({confidence*100:.1f}%)")

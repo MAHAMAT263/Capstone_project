@@ -5,18 +5,68 @@ class TermsAndConditionScreen extends StatelessWidget {
 
   // The text content of the terms and conditions
   final String termsContent = """
-1.1 Thank you for visiting our Application Doctor 24×7 and enrolling as a member.
+1. Introduction  
+1.1 Thank you for using our ChFarmGuard mobile application (“the App”).  
+1.2 By accessing or using this App, you agree to the following Terms & Conditions. If you do not agree, please discontinue use immediately.
 
-1.2 Your privacy is important to us. To better protect your privacy, we are providing this notice explaining our policy with regards to the information you share with us. This privacy policy relates to the information we collect, online from Application, received through the email, by fax or telephone, or in person or in any other way and retain and use for the purpose of providing you services. If you do not agree to the terms in this Policy, we kindly ask you not to use these portals and/or sign the contract document.
+2. Purpose of the Application  
+2.1 The App works together with an IoT-based animal intrusion detection system installed on farms.  
+2.2 The system captures images of animals, sends real-time alerts, and provides notification options (SMS, online alerts, or sound deterrents).  
+2.3 The App is intended for farm monitoring, crop protection, and community conflict-prevention support.
 
-1.3 In order to use the services of this Application, You are required to register yourself by verifying the authorised device. This Privacy Policy applies to your information that we collect and receive on and through Doctor 24×7; it does not apply to practices of businesses that we do not own or control or people we do not employ.
+3. Registration & User Responsibility  
+3.1 To use the App, you may be required to create an account or verify your device.  
+3.2 You agree to provide accurate information and keep your login credentials secure.  
+3.3 You are responsible for all activity conducted through your account.  
+3.4 Unauthorized access to the system, including attempting to manipulate alerts, copy data, or bypass security, is strictly prohibited.
 
-1.4 By using this Application, you agree to the terms of this Privacy Policy.
+4. Data Collection & Privacy  
+4.1 The App may collect certain data such as:  
+• device information,  
+• phone number (for alerts),  
+• user settings and preferences.  
 
-1.5 Any unauthorized use of the Application, including but not limited to unauthorized entry into the Application's systems, misuse of passwords, or misuse of any information posted on a site, is strictly prohibited. You agree that you will not engage in any activities related to this Application that are contrary to applicable laws or regulations.
+4.2 The IoT device used with the App captures images **only when motion is detected**, and these images may be sent to your device for alert purposes.
 
-1.6 We reserve the right to change, modify, add, or remove portions of these terms at any time. Please check these terms and conditions periodically for changes. Your continued use of the Application following the posting of changes will mean that you accept and agree to the changes.
+4.3 Images containing people or non-threatening objects are **immediately deleted** by the system and are not stored.
+
+4.4 Images of animals that pose a real risk to crops (e.g., goats, cows, camels, wildlife) may be temporarily stored for system improvement and verification.
+
+4.5 All images are encrypted and accessible only to authorized research or system personnel.
+
+4.6 By using this App, you consent to this data handling approach. Full details are provided in the Privacy Policy section of your project.
+
+5. User Conduct  
+5.1 You agree NOT to use the App or associated hardware to:  
+• violate local laws,  
+• harm others or escalate disputes,  
+• misuse captured images as evidence in conflicts,  
+• attempt unauthorized access to servers or data.  
+
+5.2 The App is designed to support conflict prevention, not to assign blame or create tension between farmers and herders.
+
+6. System Limitations  
+6.1 Detection accuracy may vary depending on environmental conditions (lighting, weather, camera placement).  
+6.2 Network connectivity or GSM coverage may affect notification speed.  
+6.3 We do not guarantee uninterrupted service, nor can we be held responsible for crop damage occurring during system downtime.
+
+7. Liability  
+7.1 The App and connected devices are provided “as is”.  
+7.2 We are not liable for:  
+• losses resulting from missed alerts or technical failures,  
+• misuse of the App by the user,  
+• disputes arising between community members.  
+
+7.3 Users are encouraged to treat alert information as supportive—not definitive—data.
+
+8. Changes to Terms  
+8.1 We may update these Terms & Conditions at any time to reflect improvements or legal requirements.  
+8.2 Continued use of the App after updates means you accept the revised terms.
+
+9. Contact  
+If you have questions, concerns, or wish to withdraw from the research project, please contact the project team or the designated support office.
 """;
+
 
   @override
   Widget build(BuildContext context) {

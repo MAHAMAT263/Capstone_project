@@ -1,18 +1,9 @@
-# Web server and HTTP requests
 Flask
 requests
-
-# Machine learning and image processing
 opencv-python
 numpy
 tflite-runtime
-
-# Firebase integration
 firebase-admin
-
-# Audio playback (choose the one your sound_manager uses)
 sounddevice
 simpleaudio
-
-# Optional utilities
 gunicorn

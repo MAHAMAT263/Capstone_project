@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// 🖼️ Your Raspberry Pi IP running Flask
-const String raspberryPiIp = '192.168.1.242'; // ⬅️ CHANGE THIS
+// Your Raspberry Pi IP running Flask
+const String raspberryPiIp = '192.168.1.242';
 String get liveImageUrl => 'http://$raspberryPiIp:5000/latest.jpg';
 
 class HomeScreen extends StatefulWidget {
@@ -15,8 +16,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _imageUrl = liveImageUrl;
+  bool automaticMode = false;
 
-  /// 🟢 Update alert status when buttons are clicked
+  @override
+  void initState() {
+    super.initState();
+    _loadAutomaticMode();
+  }
+
+  Future<void> _loadAutomaticMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      automaticMode = prefs.getBool('automatic_mode') ?? false;
+    });
+  }
+
+  /// Update alert status when buttons are clicked
   Future<void> _updateAlertStatus(
       BuildContext context, String alertId, String newStatus) async {
     try {
@@ -42,7 +57,10 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Home', style: TextStyle(color: Colors.black)),
+        title: const Text(
+          'Home',
+          style: TextStyle(color: Colors.black),
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -66,7 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
             final status = alertData['status'] ?? '';
             final isWarning = (status == 'PENDING');
 
-            // 🔁 Only refresh image when there’s a new alert
+            // AUTO PLAY SOUND IF AUTOMATIC MODE IS ON
+            if (isWarning && automaticMode) {
+              _updateAlertStatus(context, doc.id, 'PLAY');
+            }
+
+            // Only refresh image when there’s a new alert
             if (isWarning) {
               _imageUrl =
                   '$liveImageUrl?t=${DateTime.now().millisecondsSinceEpoch}';
@@ -74,8 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -104,15 +126,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               'A ${alertData['animal'] ?? 'cattle'} is approaching\nyour farm !!!\nTake action now!',
                               style: const TextStyle(
-                                  fontSize: 22, color: Colors.black),
+                                fontSize: 22,
+                                color: Colors.black,
+                              ),
                             ),
                             const SizedBox(height: 24),
                             const Text(
                               'Take action',
                               style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black),
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                             ),
                             const SizedBox(height: 24),
                             SizedBox(
@@ -121,12 +146,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ElevatedButton(
                                 onPressed: () async {
                                   await _updateAlertStatus(
-                                      context, doc.id, 'NOT_PLAY');
+                                    context,
+                                    doc.id,
+                                    'NOT_PLAY',
+                                  );
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.blue[700],
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
                                 child: const Text(
@@ -146,12 +174,15 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: TextButton(
                                 onPressed: () async {
                                   await _updateAlertStatus(
-                                      context, doc.id, 'PLAY');
+                                    context,
+                                    doc.id,
+                                    'PLAY',
+                                  );
                                 },
                                 style: TextButton.styleFrom(
                                   backgroundColor: Colors.grey[200],
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
                                 child: const Text(
@@ -187,10 +218,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 🐄 Build warning image (from Raspberry Pi)
+  /// Build warning image (from Raspberry Pi)
   Widget _buildWarningImage() {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(12.0),
+      borderRadius: BorderRadius.circular(12),
       child: Image.network(
         _imageUrl,
         fit: BoxFit.cover,
@@ -198,39 +229,31 @@ class _HomeScreenState extends State<HomeScreen> {
           if (progress == null) return child;
           return const Center(child: CircularProgressIndicator());
         },
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.broken_image,
-          color: Colors.redAccent,
-          size: 100,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.broken_image, color: Colors.redAccent, size: 100),
       ),
     );
   }
 
-  /// 🌾 Build safe image (placeholder)
+  /// Build safe image (placeholder)
   Widget _buildSafeImage() {
     return Center(
       child: Image.asset(
         'assets/img/safe_crops.png',
         height: 260,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => const Icon(
-          Icons.agriculture,
-          size: 200,
-          color: Colors.black54,
-        ),
+        errorBuilder: (context, error, stackTrace) =>
+            const Icon(Icons.agriculture, size: 200, color: Colors.black54),
       ),
     );
   }
 
-  /// ⚙️ Bottom Navigation Bar
+  /// Bottom Navigation Bar
   Widget _buildBottomNavBar(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Colors.grey[200]!, width: 1.0),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey[200]!, width: 1)),
       ),
       height: 60,
       child: Row(
@@ -258,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 📱 Navigation item builder
+  /// Navigation item builder
   Widget _buildNavItem({
     required IconData icon,
     required String label,
@@ -285,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 🧩 Safe fallback view
+  /// Safe fallback view
   Widget _buildSafeView() {
     return Center(
       child: Column(

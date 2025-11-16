@@ -26,12 +26,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
   final translator = GoogleTranslator();
 
   final List<LanguageOption> allLanguages = [
-    LanguageOption(
-        code: 'en', name: 'English', flagAsset: 'assets/us_flag.png'),
-    LanguageOption(
-        code: 'ar', name: 'Arabic', flagAsset: 'assets/saudi_flag.png'),
-    LanguageOption(
-        code: 'fr', name: 'French', flagAsset: 'assets/french_flag.png'),
+    LanguageOption(code: 'en', name: 'English', flagAsset: 'assets/us_flag.png')
   ];
 
   String _selectedLanguageCode = 'en'; // default

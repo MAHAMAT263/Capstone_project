@@ -41,7 +41,7 @@ async def upload_file(file: UploadFile = File(...)):
         with open(save_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        print(f"✅ New image uploaded: {save_path}")
+        print(f" New image uploaded: {save_path}")
         return {"status": "success", "message": "Image uploaded successfully"}
 
     except Exception as e:

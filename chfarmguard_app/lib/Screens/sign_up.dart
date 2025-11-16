@@ -63,12 +63,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         'createdAt': Timestamp.now(),
       });
 
-      // ✅ Success feedback
+      //  Success feedback
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created successfully!')),
       );
 
-      // ✅ Redirect to SignInScreen
+      //  Redirect to SignInScreen
       await Future.delayed(const Duration(seconds: 1)); // slight delay for UX
       if (mounted) {
         Navigator.pushAndRemoveUntil(
