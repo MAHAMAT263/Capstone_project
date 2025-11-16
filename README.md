@@ -86,18 +86,30 @@ raspberry_pi/
 ├── api/                     # FastAPI cloud uploader
 
 ├── models/
+
 │   ├── best_animals.tflite
+
 │   └── classes.txt
+
 ├── alert_manager.py
+
 ├── sound_manager.py
+
 ├── sounds/
+
 ├── captured_image/
+
 ├── firebase_config.json
+
 └── requirements.txt
 
+
 chfarmguard_app/             # Flutter mobile app
+
 app-release.apk              # Android APK
+
 notebook.ipynb               # Training notebook
+
 
 
 ---
