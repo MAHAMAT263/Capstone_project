@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Your Raspberry Pi IP running Flask
 const String raspberryPiIp = '192.168.1.242';
-String get liveImageUrl => 'http://$raspberryPiIp:5000/latest.jpg';
+String get liveImageUrl =>
+    'https://capstone-project-hbck.onrender.com/latest.jpg';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
