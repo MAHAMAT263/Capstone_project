@@ -9,7 +9,7 @@ Date: 15/09/2025
 
 ## 📹 Demo Video
 5-minute demonstration video:  
-https://drive.google.com/drive/folders/17Xac1BwoIPViNwazjs06NWbVoVIGqKkc?usp=drive_link
+https://drive.google.com/drive/folders/17Xac1BwoIPViNwazjs06NWbVoVIGqKkc
 
 ---
 
