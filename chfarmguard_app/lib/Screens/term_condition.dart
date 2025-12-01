@@ -21,20 +21,19 @@ class TermsAndConditionScreen extends StatelessWidget {
 3.4 Unauthorized access to the system, including attempting to manipulate alerts, copy data, or bypass security, is strictly prohibited.
 
 4. Data Collection & Privacy  
-4.1 The App may collect certain data such as:  
-• device information,  
+4.1 The App may collect certain data such as:
 • phone number (for alerts),  
-• user settings and preferences.  
+• email address (for account management),
 
 4.2 The IoT device used with the App captures images **only when motion is detected**, and these images may be sent to your device for alert purposes.
 
 4.3 Images containing people or non-threatening objects are **immediately deleted** by the system and are not stored.
 
-4.4 Images of animals that pose a real risk to crops (e.g., goats, cows, camels, wildlife) may be temporarily stored for system improvement and verification.
+4.4 Images of animals that pose a real risk to crops (e.g., goats, cows ) may be temporarily stored for system improvement and verification and deleted in one mounth.
 
 4.5 All images are encrypted and accessible only to authorized research or system personnel.
 
-4.6 By using this App, you consent to this data handling approach. Full details are provided in the Privacy Policy section of your project.
+4.6 By using this App, you consent to this data handling approach.
 
 5. User Conduct  
 5.1 You agree NOT to use the App or associated hardware to:  
@@ -57,7 +56,7 @@ class TermsAndConditionScreen extends StatelessWidget {
 • misuse of the App by the user,  
 • disputes arising between community members.  
 
-7.3 Users are encouraged to treat alert information as supportive—not definitive—data.
+7.3 Users are encouraged to treat alert information as supportive—not definitive data.
 
 8. Changes to Terms  
 8.1 We may update these Terms & Conditions at any time to reflect improvements or legal requirements.  
@@ -66,7 +65,6 @@ class TermsAndConditionScreen extends StatelessWidget {
 9. Contact  
 If you have questions, concerns, or wish to withdraw from the research project, please contact the project team or the designated support office.
 """;
-
 
   @override
   Widget build(BuildContext context) {
