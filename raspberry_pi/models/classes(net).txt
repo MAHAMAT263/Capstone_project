@@ -1,0 +1,12 @@
+Bull
+Camel
+Cattle
+Deer
+Goat
+Horse
+Mule
+Pig
+Rabbit
+Hippopotamus
+Sheep
+Zebra
