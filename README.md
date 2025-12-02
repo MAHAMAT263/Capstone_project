@@ -43,7 +43,7 @@ The system is engineered for low-resource rural farms, especially in Chad.
 # 🟦 Core Functionalities
 
 ✔ Motion-based detection using MOG2  
-✔ Real-time animal detection (YOLOv5n TFLite)  
+✔ Real-time animal detection (YOLOv5n and YOLOv5s TFLite)  
 ✔ Uploads captured image → Flask → FastAPI cloud server  
 ✔ Firebase alerts when internet is available  
 ✔ GSM SMS alerts when offline  
@@ -51,6 +51,19 @@ The system is engineered for low-resource rural farms, especially in Chad.
 ✔ Raspberry Pi executes farmer’s decision  
 ✔ Auto-alarm if no response after timeout  
 ✔ Complete two-way communication system  
+
+---
+# Table
+
+| Metric            | YOLOv5n  | YOLOv5s  | Difference | better      |
+|-------------------|----------|----------|------------|-------------|
+| mAP@0.5           | 75.9%    | 82.9%    | +7.0%      | ✅ YOLOv5s  |
+| mAP@0.5:0.95      | 75.3%    | 80.6%    | +5.3%      | ✅ YOLOv5s  |
+| Precision         | 73.1%    | 80.6%    | +7.5%      | ✅ YOLOv5s  |
+| Recall            | 69.4%    | 77.1%    | +7.7%      | ✅ YOLOv5s  |
+| Parameters        | 1.9M     | 7.0M     | +5.1M      | ✅ YOLOv5n  |
+| GFLOPs            | 4.2      | 15.9     | +11.7      | ✅ YOLOv5n  |
+| Layers            | 213      | 157      | -56        | ✅ YOLOv5s  |
 
 ---
 
